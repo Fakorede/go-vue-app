@@ -18,7 +18,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 		return err
 	}
 
-	err =  dec.Decode(&struct{}{})
+	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
 		return errors.New("body must have only a single json value")
 	}
@@ -48,7 +48,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	return nil
 }
 
-func (app *application) errorJSON (w http.ResponseWriter, err error, status ...int) {
+func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) {
 	statusCode := http.StatusBadRequest
 
 	if len(status) > 0 {

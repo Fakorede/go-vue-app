@@ -8,6 +8,7 @@
 
                     <text-input
                         v-model="email"
+                        value="email"
                         label="Email"
                         type="email"
                         name="email"
@@ -49,6 +50,29 @@ export default {
     methods: {
         submitHandler() {
             console.log("submitHandler called - success!");
+
+            console.log(this.email)
+            console.log(this.password)
+
+            const payload = {
+                "username": this.email,
+                "password": this.password
+            }
+
+            const requestOptions = {
+                method: "POST",
+                body: JSON.stringify(payload)
+            }
+
+            fetch("http://localhost:8090/api/login", requestOptions)
+                .then(response => response.json)
+                .then(data => {
+                    if (data.error) {
+                        console.log("Error: ",data.message)
+                    } else {
+                        console.log(data.message)
+                    }
+                })
         }
     },
 }

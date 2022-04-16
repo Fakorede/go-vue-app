@@ -5,7 +5,7 @@ import (
 )
 
 type jsonResponse struct {
-	Error bool `json:"error"`
+	Error   bool   `json:"error"`
 	Message string `json:"message"`
 }
 
@@ -24,6 +24,7 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 		payload.Error = true
 		payload.Message = "Invalid json"
 		_ = app.writeJSON(w, http.StatusBadRequest, payload)
+		return
 	}
 
 	// TODO: authenticate

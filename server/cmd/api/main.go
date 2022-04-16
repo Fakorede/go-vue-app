@@ -5,39 +5,44 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"server/internal/data"
 	"server/internal/driver"
 )
 
+// config struct holds application config
 type config struct {
 	port int
 }
 
+// application struct holds all configurations that needs to be shared globally across the api
 type application struct {
-	config config
-	infoLog *log.Logger
+	config   config
+	infoLog  *log.Logger
 	errorLog *log.Logger
-	db *driver.DB
+	models   data.Models
 }
 
 func main() {
 	var cfg config
-	cfg.port = 8090
+	cfg.port = 8092
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	dsn := "host=localhost port=5432 user=postgres password=postgres dbname=go_vue sslmode=disable timezone=UTC connect_timeout=5"
+	dsn := os.Getenv("DSN")
 
 	db, err := driver.ConnectPostgres(dsn)
 	if err != nil {
 		log.Fatal("Cannot connect to database")
 	}
 
+	defer db.SQL.Close()
+
 	app := &application{
-		config: cfg,
-		infoLog: infoLog,
+		config:   cfg,
+		infoLog:  infoLog,
 		errorLog: errorLog,
-		db: db,
+		models:   data.New(db.SQL),
 	}
 
 	err = app.serve()
@@ -49,8 +54,8 @@ func main() {
 func (app *application) serve() error {
 	app.infoLog.Println("Server listening on PORT", app.config.port)
 
-	srv :=  &http.Server{
-		Addr: fmt.Sprintf(":%d", app.config.port),
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", app.config.port),
 		Handler: app.routes(),
 	}
 
