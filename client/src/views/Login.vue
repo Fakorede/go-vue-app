@@ -8,10 +8,10 @@
 
                     <text-input
                         v-model="email"
-                        value="email"
                         label="Email"
                         type="email"
                         name="email"
+                        autocomplete="off"
                         required="true">
                     </text-input>
 
@@ -20,6 +20,7 @@
                         label="Password"
                         type="password"
                         name="password"
+                        autocomplete="off"
                         required="true">
                     </text-input>
 
@@ -34,6 +35,9 @@
 <script>
 import FormTag from '@/components/forms/FormTag.vue'
 import TextInput from '@/components/forms/TextInput.vue'
+import { store } from '@/store'
+import router from '@/router'
+import notie from 'notie'
 
 export default {
     name: 'login',
@@ -45,15 +49,11 @@ export default {
         return {
             email: "",
             password: "",
+            store,
         }
     },
     methods: {
         submitHandler() {
-            console.log("submitHandler called - success!");
-
-            console.log(this.email)
-            console.log(this.password)
-
             const payload = {
                 "username": this.email,
                 "password": this.password
@@ -64,13 +64,37 @@ export default {
                 body: JSON.stringify(payload)
             }
 
-            fetch("http://localhost:8090/api/login", requestOptions)
-                .then(response => response.json)
-                .then(data => {
-                    if (data.error) {
-                        console.log("Error: ",data.message)
+            fetch("http://localhost:8092/api/login", requestOptions)
+                .then(response => response.json())
+                .then((response) => {
+                    if (response.error) {
+                        console.log("Error: ",response.message)
+                        notie.alert({
+                            type: 'error',
+                            text: response.message
+                        })
                     } else {
-                        console.log(data.message)
+                        store.token = response.data.token.token
+                        store.user = {
+                            id: response.data.user.id,
+                            first_name: response.data.user.first_name,
+                            last_name: response.data.user.last_name,
+                            email: response.data.user.email,
+                        }
+
+                        // save to cookie
+                        let date = new Date()
+                        let expiryDays = 1
+                        date.setTime(date.getTime() + (expiryDays * 24 * 60 * 60 * 1000))
+
+                        const expires = "expires=" + date.toUTCString()
+                        document.cookie = "_site_data="
+                            + JSON.stringify(response.data)
+                            + "; "
+                            + expires
+                            + "; path=/; SameSite=strict; Secure;"
+
+                        router.push({name: 'Home'})
                     }
                 })
         }

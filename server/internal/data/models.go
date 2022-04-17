@@ -292,7 +292,7 @@ func (t *Token) Insert(token Token, u User) error {
 		INSERT INTO tokens (user_id, email, token, token_hash, created_at, updated_at, expiry)
 		values($1, $2, $3, $4, $5, $6, $7)
 	`
-	_, err = db.ExecContext(ctx, stmt, token.UserID, token.Email, token.Token, token.TokenHash, token.CreatedAt, token.UpdatedAt, token.Expiry)
+	_, err = db.ExecContext(ctx, stmt, token.UserID, token.Email, token.Token, token.TokenHash, time.Now(), time.Now(), token.Expiry)
 	if err != nil {
 		return err
 	}
