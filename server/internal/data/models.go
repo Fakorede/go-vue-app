@@ -134,7 +134,7 @@ func (u User) Insert(user User) (int, error) {
 	}
 
 	var newID int
-	
+
 	stmt := `
 		INSERT INTO users (first_name, last_name, email, password, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -151,7 +151,7 @@ func (u User) Insert(user User) (int, error) {
 	return newID, nil
 }
 
-func (u User) Update() (error) {
+func (u User) Update() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -171,7 +171,7 @@ func (u User) Update() (error) {
 	return nil
 }
 
-func (u User) Delete() (error) {
+func (u User) Delete() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -187,7 +187,7 @@ func (u User) Delete() (error) {
 	return nil
 }
 
-func (u User) ResetPassword(password string) (error) {
+func (u User) ResetPassword(password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -220,13 +220,12 @@ func (u User) PasswordMatches(plainPass string) (bool, error) {
 	return true, nil
 }
 
-
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
-	Token     string       `json:"token"`
+	Token     string    `json:"token"`
 	TokenHash []byte    `json:"-"`
-	Email string `json:"email"`
+	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Expiry    time.Time `json:"expiry"`
@@ -276,7 +275,7 @@ func (t Token) GetUserForToken(token Token) (*User, error) {
 	return &user, nil
 }
 
-func (t *Token) Insert (token Token, u User) error {
+func (t *Token) Insert(token Token, u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -291,7 +290,7 @@ func (t *Token) Insert (token Token, u User) error {
 
 	stmt = `
 		INSERT INTO tokens (user_id, email, token, token_hash, created_at, updated_at, expiry)
-		values($1, $2, $3, $4, $5, $6)
+		values($1, $2, $3, $4, $5, $6, $7)
 	`
 	_, err = db.ExecContext(ctx, stmt, token.UserID, token.Email, token.Token, token.TokenHash, token.CreatedAt, token.UpdatedAt, token.Expiry)
 	if err != nil {
@@ -301,7 +300,7 @@ func (t *Token) Insert (token Token, u User) error {
 	return nil
 }
 
-func (t *Token) Delete (plainText string) error {
+func (t *Token) Delete(plainText string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -309,18 +308,18 @@ func (t *Token) Delete (plainText string) error {
 	_, err := db.ExecContext(ctx, stmt, plainText)
 	if err != nil {
 		return err
-	}	
+	}
 
 	return nil
 }
 
 func (t Token) GenerateToken(userID int, ttl time.Duration) (*Token, error) {
-	token := &Token {
+	token := &Token{
 		UserID: userID,
 		Expiry: time.Now().Add(ttl),
 	}
 
-	randomBytes := 	make([]byte, 16)
+	randomBytes := make([]byte, 16)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		return nil, err
@@ -367,7 +366,7 @@ func (t Token) AuthenticateToken(r *http.Request) (*User, error) {
 	return user, nil
 }
 
-func (t *Token) ValidToken (plainText string) (bool, error) {
+func (t *Token) ValidateToken(plainText string) (bool, error) {
 	token, err := t.GetByToken(plainText)
 	if err != nil {
 		return false, errors.New("no matching token found")

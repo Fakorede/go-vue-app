@@ -4,10 +4,6 @@ import (
 	"net/http"
 )
 
-type jsonResponse struct {
-	Error   bool   `json:"error"`
-	Message string `json:"message"`
-}
 
 func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	type credentials struct {
